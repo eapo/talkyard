@@ -24,7 +24,7 @@ import debiki.EdHttp._
 import debiki.Globals.isDevOrTest
 import java.{util => ju}
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.{mutable, immutable}
+import scala.collection.{immutable, mutable}
 import play.{api => p}
 import talkyard.server.dao._
 
@@ -274,7 +274,16 @@ trait ReviewsDao {   // RENAME to ModerationDao,  MOVE to  talkyard.server.modn
           decision: ReviewDecision)(tx: SiteTx, staleStuff: StaleStuff): Unit = {
 
     TESTS_MISSING
-    dieIf(!moderator.isStaff, "TyE5KRDL356")
+
+    // Only staff and higher trust levels can do this.
+    // The trust level will be configurable. For now, Core Member is a good default?
+    if (!moderator.isStaffOrCoreMember)
+      return
+
+    // Cannot review one's own things. Unless one is staff (maybe recently got
+    // became staff; then, one can accept one's own maybe-pending-review posts).
+    if (post.createdById == moderator.id && !moderator.isStaff)
+      return
 
     // Skip not-yet-approved posts. Approve-before is more explicit — an
     // in page button to click. [in_pg_apr]
@@ -286,9 +295,9 @@ trait ReviewsDao {   // RENAME to ModerationDao,  MOVE to  talkyard.server.modn
     // from here. (025AKDL)
     // throwIfMayNotSeePost(task, requester)  <—— not needed
 
-    dieIf(decision != ReviewDecision.InteractEdit
-          && decision != ReviewDecision.InteractReply, "TyE50RKT25M",
-          s"Unsupported maybeAcceptPostByInteracting decision: $decision")
+    import com.debiki.core.ReviewDecision.{FirsInteractAcceptId, LastInteractAcceptId}
+    dieIf(decision.toInt < FirsInteractAcceptId || LastInteractAcceptId < decision.toInt,
+          "TyE50RKT25M", s"Unsupported maybeAcceptPostByInteracting decision: $decision")
 
     val allTasks = tx.loadReviewTasksAboutPostIds(Seq(post.id))
     val tasksToAccept = allTasks.filterNot(task =>
@@ -359,7 +368,8 @@ trait ReviewsDao {   // RENAME to ModerationDao,  MOVE to  talkyard.server.modn
           case Accept if !post.isCurrentVersionApproved =>
             approveAndPublishPost(post, decidedById = decidedById, tasksToAccept = modTasks,
                   pageIdsToRefresh)(tx, staleStuff)
-          case Accept | InteractEdit | InteractReply =>
+          case Accept | InteractEdit | InteractReply |
+                InteractAcceptAnswer | InteractWikify | InteractLike =>
             reviewAccceptPost(post, tasksToAccept = modTasks, decision,
                   decidedById = decidedById)(tx, staleStuff)
           case DeletePostOrPage =>

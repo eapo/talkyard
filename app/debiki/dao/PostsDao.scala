@@ -294,13 +294,13 @@ trait PostsDao {
     // mod tasks about the parent post. So they won't need to review this post twice,
     // on the Moderation page too.
     TESTS_MISSING  // TyTE2EMRHK35
-    if (author.isStaff) {
-      bugWarnIf(anyReviewTask.isDefined || anySpamCheckTask.isDefined, "TyE05RKD5")
+    //if (author.isStaffOrTrustedNotThreat) {
+    //  bugWarnIf(anyReviewTask.isDefined || anySpamCheckTask.isDefined, "TyE05RKD5")
       replyToPosts foreach { replyToPost =>
         maybeReviewAcceptPostByInteracting(replyToPost, moderator = author,
               ReviewDecision.InteractReply)(tx, staleStuff)
       }
-    }
+    //}
 
     val notifications =
       if (skipNotfsAndAuditLog) Notifications.None
@@ -1059,8 +1059,8 @@ trait PostsDao {
       val postRecentlyCreated = tx.now.millis - postToEdit.createdAt.getTime <=
           AllSettings.PostRecentlyCreatedLimitMs
 
-      val reviewTask: Option[ReviewTask] =    // (7ALGJ2)
-        if (editor.isStaff) {
+      val reviewTask: Option[ReviewTask] =    /* (7ALGJ2)
+        if (editor.isStaffOrCoreMember) {
           // Now staff has had a look at the post, even edited it — so resolve
           // mod tasks about this posts. So won't be asked to review this post again,
           // on the Moderation page.
@@ -1069,6 +1069,10 @@ trait PostsDao {
           None
         }
         else if (editor.isStaffOrTrustedNotThreat) {
+        */
+        if (editor.isStaffOrTrustedNotThreat) {
+          maybeReviewAcceptPostByInteracting(postToEdit, moderator = editor,
+                ReviewDecision.InteractEdit)(tx, staleStuff)
           // Don't review late edits by trusted members — trusting them is
           // the point with the >= TrustedMember trust levels. TyTLADEETD01
           None
@@ -1536,7 +1540,7 @@ trait PostsDao {
 
   def changePostType(pageId: PageId, postNr: PostNr, newType: PostType,
         changerId: UserId, browserIdData: BrowserIdData): Unit = {
-    readWriteTransaction { tx =>
+    writeTx { (tx, staleStuff) =>
       val page = newPageDao(pageId, tx)
       val postBefore = page.parts.thePostByNr(postNr)
       val Seq(author, changer) = tx.loadTheParticipants(postBefore.createdById, changerId)
@@ -1554,11 +1558,15 @@ trait PostsDao {
           "TyE5KSQ047", "Can only move top level posts from one section to another.")
       }
 
+      var anyModDecision: Option[ModDecision] = None
+
       // Test if the changer is allowed to change the post type in this way.
       if (changer.isStaff) {
         (postBefore.tyype, postAfter.tyype) match {
           case (before, after) if before == PostType.Normal && after.isWiki =>
             // Fine, staff wikifies post.
+            // And now we can consider this post reviewed and ok, right.
+            anyModDecision = Some(ReviewDecision.InteractWikify)
           case (before, after) if before.isWiki && after == PostType.Normal =>
             // Fine, staff removes wiki status.
           case (before, after) if movesToOtherSection =>
@@ -1605,6 +1613,11 @@ trait PostsDao {
         }
       }
 
+      anyModDecision foreach { decision =>
+        maybeReviewAcceptPostByInteracting(postAfter, moderator = changer,
+              decision)(tx, staleStuff)
+      }
+
       // (Don't reindex)
       tx.updatePost(postAfter)
       tx.updatePageMeta(newMeta, oldMeta = oldMeta, markSectionPageStale = false)
@@ -1612,7 +1625,7 @@ trait PostsDao {
       // COULD generate some notification? E.g. "Your post was made wiki-editable."
     }
 
-    refreshPageInMemCache(pageId)
+    refreshPageInMemCache(pageId)  // [staleStuff]
   }
 
 
@@ -2272,6 +2285,10 @@ trait PostsDao {
             tx.saveDeleteNotifications(notifications)
           }
         }
+
+        TESTS_MISSING  // TyTE2EMRHK35
+        maybeReviewAcceptPostByInteracting(post, moderator = voter,
+              ReviewDecision.InteractLike)(tx, staleStuff)
       }
 
       // Page version in db updated by updatePageAndPostVoteCounts() above.
