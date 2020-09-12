@@ -50,13 +50,14 @@ const apiSecret: TestApiSecret = {
 
 
 
-describe("some-e2e-test  TyT1234ABC", () => {
+describe(`some-e2e-test  TyTE2E1234ABC`, () => {
 
-  it("import a site", () => {
+  it(`construct site`, () => {
     const builder = buildSite();
-    forum = builder.addTwoPagesForum({  // or: builder.addLargeForum
+    forum = builder.addTwoPagesForum({  // or addEmptyForum or addLargeForum
       title: "Some E2E Test",
       members: undefined, // default = everyone
+        // ['mons', 'modya', 'regina', 'corax', 'memah', 'maria', 'michael', 'mallory']
     });
 
     // Adding a new member:
@@ -82,8 +83,13 @@ describe("some-e2e-test  TyT1234ABC", () => {
       approvedSource: "The secret of getting ahead is getting started",
     });
 
-    // Disable notifications, or notf email counts will be off (since Owen would get emails).
-    builder.settings({ numFirstPostsToReview: 0, numFirstPostsToApprove: 0 });
+    // Disable notifications, or notf email counts will be off
+    // (since Owen would get emails).
+    builder.settings({
+      numFirstPostsToApprove: 0,
+      //maxPostsPendApprBefore: 0,
+      numFirstPostsToReview: 0,
+    });
     builder.getSite().pageNotfPrefs = [{
       memberId: forum.members.owen.id,
       notfLevel: c.TestPageNotfLevel.Muted,
@@ -95,15 +101,8 @@ describe("some-e2e-test  TyT1234ABC", () => {
     builder.getSite().apiSecrets = [apiSecret];
 
     // Add an ext id to a category.
-    // forum.categories.specificCategory.extId = 'specific cat ext id';
+    forum.categories.specificCategory.extId = 'specific cat ext id';
 
-    assert.refEq(builder.getSite(), forum.siteData);
-    site = server.importSiteData(forum.siteData);
-    server.skipRateLimits(site.id);
-    discussionPageUrl = site.origin + '/' + forum.topics.byMichaelCategoryA.slug;
-  });
-
-  it("initialize people", () => {
     everyonesBrowsers = new TyE2eTestBrowser(allWdioBrowsers);
     richBrowserA = new TyE2eTestBrowser(wdioBrowserA);
     richBrowserB = new TyE2eTestBrowser(wdioBrowserB);
@@ -126,20 +125,28 @@ describe("some-e2e-test  TyT1234ABC", () => {
     mallory = forum.members.mallory;
     mallorysBrowser = richBrowserB;
     strangersBrowser = richBrowserB;
+
+    assert.refEq(builder.getSite(), forum.siteData);
   });
 
-  it("Owen logs in to admin area, ... ", () => {
+  it(`import site`, () => {
+    site = server.importSiteData(forum.siteData);
+    server.skipRateLimits(site.id);
+    discussionPageUrl = site.origin + '/' + forum.topics.byMichaelCategoryA.slug;
+  });
+
+  it(`Owen logs in to admin area, ... `, () => {
     owensBrowser.adminArea.goToUsersEnabled(site.origin);
     owensBrowser.loginDialog.loginWithPassword(owen);
   });
 
-  it("Maria logs in", () => {
+  it(`Maria logs in`, () => {
     mariasBrowser.go2(site.origin + '/' + forum.topics.byMichaelCategoryA.slug);
     mariasBrowser.complex.loginWithPasswordViaTopbar(maria);
   });
 
   // For embedded comments:  EMBCMTS
-  it("Creates an embedding page", () => {
+  it(`Creates an embedding page`, () => {
     /*
     const dir = 'target';
     fs.writeFileSync(`${dir}/page-a-slug`, makeHtml('b3c-aaa', '#500'));
