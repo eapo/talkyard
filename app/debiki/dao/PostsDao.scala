@@ -922,7 +922,7 @@ trait PostsDao {
             // the first time (for that post),  or do via the Moderation page.
             // (This partly because it'd be *complicated* to both approve and publish
             // the post, *and* handle edits, at the same time.)
-            TESTS_MISSING // [065AKDLU35]
+            // Test: TyTE2E407RKS
             None
           }
           else {
@@ -1071,7 +1071,14 @@ trait PostsDao {
         else if (editor.isStaffOrTrustedNotThreat) {
         */
         if (editor.isStaffOrTrustedNotThreat) {
-          maybeReviewAcceptPostByInteracting(postToEdit, moderator = editor,
+          // Mod tasks for new topics are linked to the orig post, not the title post.
+          val postWithModTasks =
+                if (!postToEdit.isTitle) postToEdit
+                else {
+                  // Test: TyTE2E042SR4
+                  tx.loadTheOrigPost(postToEdit.pageId)
+                }
+          maybeReviewAcceptPostByInteracting(postWithModTasks, moderator = editor,
                 ReviewDecision.InteractEdit)(tx, staleStuff)
           // Don't review late edits by trusted members — trusting them is
           // the point with the >= TrustedMember trust levels. TyTLADEETD01

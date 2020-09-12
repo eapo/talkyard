@@ -396,7 +396,8 @@ object ForumController {
     Json.obj(
       "pageId" -> page.pageId,
       "pageRole" -> page.pageType.toInt,
-      "title" -> topicStuff.title,
+      // Currently, if one knows a topic exists, one can see its title.
+      "title" -> topicStuff.titleMaybeUnapproved,
       "url" -> urlPath,
       // Private chats & formal messages might not belong to any category.
       "categoryId" -> JsNumberOrNull(page.categoryId),

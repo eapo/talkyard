@@ -212,8 +212,9 @@ trait ReviewsDao {   // RENAME to ModerationDao,  MOVE to  talkyard.server.modn
     */
   def moderatePostInstantly(postId: PostId, postRevNr: PostRevNr,
           decision: ReviewDecision, moderator: Participant): ModResult = {
+    // Tests:
+    //    - modn-from-disc-page-appr-befr.2browsers.test.ts  TyTE2E603RTJ
 
-    TESTS_MISSING // [065AKDLU35]
     dieIf(!moderator.isStaff, "TyE5KRDL356")
     // More authz in the tx below.
 
@@ -273,7 +274,8 @@ trait ReviewsDao {   // RENAME to ModerationDao,  MOVE to  talkyard.server.modn
   def maybeReviewAcceptPostByInteracting(post: Post, moderator: Participant,
           decision: ReviewDecision)(tx: SiteTx, staleStuff: StaleStuff): Unit = {
 
-    TESTS_MISSING
+    // Tests:
+    // modn-from-disc-page-review-after.2browsers.test.ts  TyTE2E603RKG4
 
     // Only staff and higher trust levels can do this.
     // The trust level will be configurable. For now, Core Member is a good default?
