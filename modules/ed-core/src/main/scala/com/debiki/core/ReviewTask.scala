@@ -81,21 +81,21 @@ object ReviewDecision {
     */
   case object InteractEdit extends ReviewDecision(1201)
 
-  /** New post accepted by replying and talking with the person. */
+  /** New post accepted if replying and talking with the person. */
   case object InteractReply extends ReviewDecision(1202)
 
-  /** Both question topic and answer post accepted implicitly, by marking
+  /** Both question topic and answer posts accepted implicitly, if marking
     * the answer post as a solution. */
   case object InteractAcceptAnswer extends ReviewDecision(1205)
 
-  /** New post review-accepted by changing it to a Wiki post. */
+  /** New post review-accepted if changing it to a Wiki post. */
   case object InteractWikify extends ReviewDecision(1207)
 
-  /** Topic accepted implicitly by changing doing-status, e.g. from New to Planned. */
+  /** Topic accepted implicitly if changing doing-status, e.g. from New to Planned. */
   // Later.
   //case object InteractTopicDoingStatus extends ReviewDecision(1221)
 
-  /** New post accepted by Like-voting it. */
+  /** New post accepted if Like-voting it. */
   case object InteractLike extends ReviewDecision(1241)
   require(InteractLike.IntVal == PostVoteType.Like.IntVal + 1200)
 

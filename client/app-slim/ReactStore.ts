@@ -634,6 +634,7 @@ ReactStore.activateMyself = function(anyNewMe: Myself) {
 
 
 function store_addUnapprovedPosts(store: Store, myPageData: MyPageData) {
+  // Test:  modn-from-disc-page-approve-before  TyTE2E603RTJ
   _.each(myPageData.unapprovedPosts, (post: Post) => {
     updatePost(post, store.currentPageId);
     // COULD_FREE_MEM if other user was logged in before?

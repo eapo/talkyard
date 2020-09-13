@@ -5399,6 +5399,7 @@ export class TyE2eTestBrowser {
         if (postNr === c.BodyNr) {
           // Then currently the page gets deleted instead
           // — the posts need an [ApprovedStatus] post field.
+          this.topic.waitUntilPageDeleted();
           return;
         }
         this.waitUntilGone(selector);

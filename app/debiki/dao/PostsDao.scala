@@ -293,14 +293,11 @@ trait PostsDao {
     // If staff has now read and replied to the parent post — then resolve any
     // mod tasks about the parent post. So they won't need to review this post twice,
     // on the Moderation page too.
-    TESTS_MISSING  // TyTE2EMRHK35
-    //if (author.isStaffOrTrustedNotThreat) {
-    //  bugWarnIf(anyReviewTask.isDefined || anySpamCheckTask.isDefined, "TyE05RKD5")
-      replyToPosts foreach { replyToPost =>
-        maybeReviewAcceptPostByInteracting(replyToPost, moderator = author,
-              ReviewDecision.InteractReply)(tx, staleStuff)
-      }
-    //}
+    // Test:  modn-from-disc-page-review-after  TyTE2E603RKG4
+    replyToPosts foreach { replyToPost =>
+      maybeReviewAcceptPostByInteracting(replyToPost, moderator = author,
+            ReviewDecision.InteractReply)(tx, staleStuff)
+    }
 
     val notifications =
       if (skipNotfsAndAuditLog) Notifications.None
@@ -922,7 +919,7 @@ trait PostsDao {
             // the first time (for that post),  or do via the Moderation page.
             // (This partly because it'd be *complicated* to both approve and publish
             // the post, *and* handle edits, at the same time.)
-            // Test: TyTE2E407RKS
+            // Test:  modn-from-disc-page-approve-before  TyTE2E603RTJ.TyTE2E407RKS
             None
           }
           else {
@@ -1059,27 +1056,24 @@ trait PostsDao {
       val postRecentlyCreated = tx.now.millis - postToEdit.createdAt.getTime <=
           AllSettings.PostRecentlyCreatedLimitMs
 
-      val reviewTask: Option[ReviewTask] =    /* (7ALGJ2)
-        if (editor.isStaffOrCoreMember) {
-          // Now staff has had a look at the post, even edited it — so resolve
-          // mod tasks about this posts. So won't be asked to review this post again,
-          // on the Moderation page.
-          maybeReviewAcceptPostByInteracting(postToEdit, moderator = editor,
-                ReviewDecision.InteractEdit)(tx, staleStuff)
-          None
-        }
-        else if (editor.isStaffOrTrustedNotThreat) {
-        */
+      val reviewTask: Option[ReviewTask] =    // (7ALGJ2)
         if (editor.isStaffOrTrustedNotThreat) {
+          // This means staff has had a look at the post, even edited it — so resolve
+          // mod tasks about this posts. So staff won't be asked to review this post,
+          // on the Moderation page.
+          // Test:  modn-from-disc-page-review-after  TyTE2E603RKG4.TyTE2E405R2
+
           // Mod tasks for new topics are linked to the orig post, not the title post.
           val postWithModTasks =
                 if (!postToEdit.isTitle) postToEdit
                 else {
-                  // Test: TyTE2E042SR4
+                  // Test: modn-from-disc-page-review-after  TyTE2E603RKG4.TyTE2E042SR4
                   tx.loadTheOrigPost(postToEdit.pageId)
                 }
+
           maybeReviewAcceptPostByInteracting(postWithModTasks, moderator = editor,
                 ReviewDecision.InteractEdit)(tx, staleStuff)
+
           // Don't review late edits by trusted members — trusting them is
           // the point with the >= TrustedMember trust levels. TyTLADEETD01
           None
@@ -1568,7 +1562,7 @@ trait PostsDao {
       var anyModDecision: Option[ModDecision] = None
 
       // Test if the changer is allowed to change the post type in this way.
-      if (changer.isStaff) {
+      if (changer.isStaffOrCoreMember) {
         (postBefore.tyype, postAfter.tyype) match {
           case (before, after) if before == PostType.Normal && after.isWiki =>
             // Fine, staff wikifies post.
@@ -1621,6 +1615,7 @@ trait PostsDao {
       }
 
       anyModDecision foreach { decision =>
+        // Test:  modn-from-disc-page-review-after  TyTE2E603RKG4.TYTE2E40IRM5
         maybeReviewAcceptPostByInteracting(postAfter, moderator = changer,
               decision)(tx, staleStuff)
       }
@@ -2293,7 +2288,7 @@ trait PostsDao {
           }
         }
 
-        TESTS_MISSING  // TyTE2EMRHK35
+        // Test:  modn-from-disc-page-review-after  TyTE2E603RKG4.TyTE2E5ART25
         maybeReviewAcceptPostByInteracting(post, moderator = voter,
               ReviewDecision.InteractLike)(tx, staleStuff)
       }

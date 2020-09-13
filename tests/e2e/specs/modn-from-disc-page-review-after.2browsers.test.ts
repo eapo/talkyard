@@ -191,11 +191,11 @@ describe(`modn-from-disc-page-review-after.2browsers  TyTE2E603RKG4`, () => {
     modyaBrA.go(topicOneUrl);
   });
 
-  it(`... implicitly reviews-after the topic, by Like-voting it`, () => {
+  it(`... implicitly reviews-after the topic, by Like-voting it  TyTE2E5ART25`, () => {
     modyaBrA.topic.toggleLikeVote(c.BodyNr);
   });
 
-  it(`... and reply A, by wikifying it`, () => {
+  it(`... and reply A, by wikifying it  TYTE2E40IRM5`, () => {
     modyaBrA.topic.wikifyPostNr(replA_nr, true);
   });
 
@@ -203,7 +203,7 @@ describe(`modn-from-disc-page-review-after.2browsers  TyTE2E603RKG4`, () => {
     modyaBrA.complex.replyToPostNr(replB_nr, modyasReplyToReplyB);
   });
 
-  it(`... and reply C, by editing it`, () => {
+  it(`... and reply C, by editing it  TyTE2E405R2`, () => {
     modyaBrA.complex.editPostNr(replC_nr, replC_edited_text);
   });
 
@@ -230,7 +230,7 @@ describe(`modn-from-disc-page-review-after.2browsers  TyTE2E603RKG4`, () => {
   });
 
 
-  //$r s/wdio --only modn-on-page-review-after.2browsers $args  TyTE2EMRHK35
+  //$r s/wdio --only modn-on-page-review-after.2browsers $args  TyT204RKSTEM
   // new member posts new topic. Mons replies (review-okays implicitly), Modya approves & rejects from modn page.
   //                             Mons edits, after replied.
   // new member posts new reply. Mons edits (review-okays implicitly), Modya approves & rejects from modn page.

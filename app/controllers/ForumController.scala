@@ -396,7 +396,8 @@ object ForumController {
     Json.obj(
       "pageId" -> page.pageId,
       "pageRole" -> page.pageType.toInt,
-      // Currently, if one knows a topic exists, one can see its title.
+      // If a person may know a certain unapproved topic exists, it's ok to show
+      // its title (for that person).
       "title" -> topicStuff.titleMaybeUnapproved,
       "url" -> urlPath,
       // Private chats & formal messages might not belong to any category.
